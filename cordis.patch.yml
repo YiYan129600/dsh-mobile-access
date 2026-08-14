@@ -1,0 +1,6 @@
+# dsh-mobile-access bundle patch: insert the host-only plugin row into the
+# web profile roster. The package exports "." only — there is no client
+# bundle, so no build step and no dsh.client declaration.
+- insert:
+    - id: mobile-access
+      name: 'dsh-mobile-access'

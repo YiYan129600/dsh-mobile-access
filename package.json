@@ -1,0 +1,65 @@
+{
+  "name": "dsh-mobile-access",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness plugin: one-page mobile access setup — Tailscale/LAN detection, scan-to-open QR (offline, server-side), and an insecure-origin crypto.randomUUID polyfill so the web UI also runs on plain-HTTP phone origins.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "plugin": {
+      "displayName": {
+        "zh": "手机接入向导",
+        "en": "Mobile Access Setup"
+      },
+      "description": {
+        "zh": "一页搞定手机远程访问：Tailscale/局域网检测、扫码直达二维码与旧版兼容补丁",
+        "en": "One-page mobile access setup: Tailscale/LAN detection, scan-to-open QR, and insecure-origin polyfill"
+      },
+      "categories": [
+        "remote",
+        "mobile",
+        "network"
+      ],
+      "aliases": [
+        "手机",
+        "远程",
+        "移动",
+        "扫码",
+        "二维码",
+        "外网",
+        "tailscale",
+        "phone",
+        "mobile",
+        "remote",
+        "qr",
+        "lan"
+      ]
+    }
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "mobile",
+    "tailscale",
+    "remote",
+    "qr",
+    "plugin"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YiYan129600/dsh-mobile-access.git"
+  }
+}
