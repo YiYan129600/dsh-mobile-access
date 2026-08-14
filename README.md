@@ -4,8 +4,8 @@
 
 One-page mobile access setup for DeepSeek Harness: live Tailscale/LAN detection, scan-to-pair QR, a **direct / HTTP-2 connection mode toggle**, and an insecure-origin polyfill so the web UI also boots on plain-HTTP phone origins.
 
-- 纯宿主插件，**无客户端 bundle、无构建步骤、零运行时依赖**（二维码由内建 MIT 库离线生成，不调外部服务）
-- 安装后访问 `http://127.0.0.1:<port>/mobile-access` 查看设置页（机器可读状态在 `/mobile-access/status.json`）
+- 纯宿主插件 + **极简客户端入口**，**无构建步骤、零运行时依赖**（二维码由内建 MIT 库离线生成，不调外部服务）
+- 安装后默认界面**侧栏底部出现 📱 按钮**，点开直达设置页（也可以直接访问 `http://127.0.0.1:<port>/mobile-access`；机器可读状态在 `/mobile-access/status.json`）
 
 ## 功能 / Features
 
