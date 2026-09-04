@@ -191,14 +191,16 @@ tapIndex 注入前检测 `window.crypto.randomUUID` 已可用性（探测脚本�
 
 ## 7. P2：agent 特化通知（0.4.0）
 
-### 7.1 WS 通知通道（`webServer.registerUpgrade` 挂载点，路径未被占用，已验证）
+### 7.1 SSE 通知通道（实现决策：SSE 替代 WS；挂载点与 seq/补流语义不变）
 
-- 插件注册 upgrade 路由 `/mobile-access/ws`：校验设备 cookie 后建立长连（与 claudecodeui"单一 WS 按路径路由"同构，harness 挂载点原生支持）。
-- **seq + 重连补流**（对标结论 §2.3-4，移动端弱网硬需求）：每事件单调 `seq`；客户端重连携带 `lastSeq`，服务端补发缺口（环形缓冲，容量如 200 条）；缺口超出缓冲则下发 `resync` 信号让客户端整页刷新。
-- 事件分类（对标 claudecodeui 通知枚举 + DSH 语义）：
-  - 第一期（纯插件可实现，零外部依赖）：`pair.changed`、`device.online/offline`、`settings.echo`；
-  - 第二期（前置验证：`sessions` / `sessionProjections` 服务的订阅能力）：`ask.arrived`（agent 提问/审批待办，含目标会话 id）、`run.completed`、`run.failed`、`todo.changed`——**轻量事件**（标题 + 一句话摘要，正文仍在 GUI 看；避免把完整会话推给一个只过 DNS 围栏的通道）。
-- 手机 GUI 打开期间，WS 事件在页面顶部 toast/角标呈现。
+> **实现注记（v0.4.0 落地）**：设计原案是 `webServer.registerUpgrade` WebSocket 通道；零依赖约束下手写 WS 帧编解码（~150 行、mask/分片/关闭帧）风险高于收益，而本通道是**纯单向推送**，故改用 **SSE（Server-Sent Events）**——普通 prefix 路由即可（无需 registerUpgrade），EventSource 原生提供自动重连 + `Last-Event-ID`，恰好就是 §7.1 要求的"seq + 重连补流"，零依赖。若未来出现真正双向需求再上 WS。
+
+- 路由 `GET ${pagePath}/events`：设备凭证 cookie 鉴权（无效 401），`text/event-stream` + 25s keepalive；断开时发布 `device.offline`、建立时发布 `device.online`。
+- **seq + 重连补流**（对标结论 §2.3-4）：每事件单调 `seq`，服务端环形缓冲 200 条；客户端重连自动带 `Last-Event-ID`，服务端补发缺口；缺口超出缓冲则跳过（客户端下条即最新）。
+- 事件分类（数据源 = harness `session/event` 全局事件总线，`ctx.on('session/event', (session, event) => …)` 已实测可订阅）：
+  - 插件自有（零外部依赖）：`pair.changed`（mint/accept/revoke/stop）、`device.online/offline`；
+  - agent 事件（classifySessionEvent 映射）：`ask.arrived`（tool/call = ask_user_question）、`run.completed`（turn/end）、`run.failed`（tool/result 带 error）、`todo.changed`（tool/call = todo_write）——**轻量事件**（kind + sessionId + ts，不含正文；assistant/chunk 等流式事件直接丢弃，防爆）。
+- 前端：tapIndex 注入迷你 EventSource 客户端（~1KB），配对手机会话打开时 toast 呈现；桌面无 cookie 只发一次 401 即停。
 
 ### 7.2 Web Push（HTTP/2 模式专属增值）
 
