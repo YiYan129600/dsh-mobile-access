@@ -1,5 +1,0 @@
-docs: record deep-link boundary for push notifications
-
-DSH GUI has no public session URL route (SPA in-memory state), so
-notificationclick opens the main surface; sessionId is already carried in the
-push payload for a future upgrade when the frontend exposes session routes.
