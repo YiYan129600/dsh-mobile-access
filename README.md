@@ -17,6 +17,7 @@ One-page mobile access setup for DeepSeek Harness: live Tailscale/LAN detection,
 | **信任围栏引导** | 探测手机来源对 `/api` 的放行状态；HTTP/2 模式未放行时给出 `web-app.trustedHosts` patch 片段；**拒绝生成扫码后是空壳的二维码**（页面能开但 `/api` 403） |
 | **PWA 主屏** | 注入 manifest + theme-color + apple-touch-icon（内置 512px 图标）；扫码配对后落到**欢迎页**，引导「添加到主屏幕」，点开即全屏 standalone |
 | **实时通知** | SSE 通道（`/mobile-access/events`，设备凭证鉴权）：agent 完成一轮 / 提问待处理 / 待办更新 / 出错时，配对手机在 GUI 内实时 toast；断线自动重连并按 `Last-Event-ID` 补流 |
+| **锁屏推送** | Web Push（VAPID + 零依赖 RFC 8291 aes128gcm 加密）：HTTP/2（HTTPS）模式下手机可在欢迎页开启锁屏通知，agent 完成/出错/提问时锁屏直达；设置页可一键测试推送 |
 | 兼容补丁 | 可选向 index.html 注入 `crypto.randomUUID` polyfill（默认 `auto`：脚本自带守卫、新 harness 零影响；可设 `false` 彻底关闭） |
 
 ## 安装 / Install
@@ -58,6 +59,9 @@ DSH 的 `/api` 信任围栏只是防 DNS 重绑定，**不是登录鉴权**。�
     pagePath: /mobile-access        # 设置页路径
     polyfill: auto                  # auto(默认)=注入带守卫的 randomUUID 脚本(新 harness 零影响); false=彻底关闭; true=强制注入
     pairTtlMs: 900000               # 配对令牌有效期（毫秒）
+    push:
+      contact: 'mailto:you@example.com'  # VAPID 订阅标识（推荐真实邮箱）
+    # push: false                   # 完全关闭 Web Push（SSE 不受影响）
     http2:
       tailscaleBin: 'C:\\Program Files\\Tailscale\\tailscale.exe'  # tailscale CLI 路径
 ```
@@ -79,7 +83,7 @@ DSH 的 `/api` 信任围栏只是防 DNS 重绑定，**不是登录鉴权**。�
 - **HTTP/2 开启后探测失败？** 等 1 分钟让证书签发后重试；若一直失败，检查 Tailscale admin console 的 MagicDNS 与 HTTPS 证书开关。
 - **重启 dsh 后已配对的手机会掉线吗？** 不会——设备凭证已持久化（`~/.dsh/data/dsh-mobile-access/devices.json`），cookie 有效期 30 天滚动。可在设置页逐个撤销设备。
 - **怎么把 DSH 变成手机上的"App"？** 配对后欢迎页有引导：iOS Safari 用「分享 → 添加到主屏幕」；Android Chrome 用菜单「添加到主屏幕」。之后点主屏幕图标即全屏打开（PWA standalone）。
-- **手机怎么实时知道 agent 干完了？** 配对手机开着 DSH 页面时，页面内会弹出实时 toast（提问待处理 / 一轮完成 / 出错 / 待办更新）。断线自动重连，不漏事件（`Last-Event-ID` 补流）。锁屏级推送（Web Push）是 HTTP/2 模式下的后续增强。
+- **手机怎么实时知道 agent 干完了？** 两条路径：① 开着 DSH 页面时，页面内实时 toast（提问待处理 / 一轮完成 / 出错 / 待办更新），断线自动重连、不漏事件（`Last-Event-ID` 补流）；② **锁屏推送**（HTTP/2 模式）：配对欢迎页点「开启锁屏通知」授权后，锁屏也能收到。
 - **想要专用手机端 UI？** 本插件负责"把网络打通"；配对令牌是自有的。若同时使用 `dsh-remote-web-ui`，其 `/m` 移动界面与本插件互不冲突。
 
 ## License

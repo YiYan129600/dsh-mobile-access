@@ -204,6 +204,8 @@ tapIndex 注入前检测 `window.crypto.randomUUID` 已可用性（探测脚本�
 
 ### 7.2 Web Push（HTTP/2 模式专属增值）
 
+> **实现注记（v0.4.0 落地）**：VAPID 密钥对（EC P-256）持久化于 `~/.dsh/data/dsh-mobile-access/vapid.json`；payload 用 **RFC 8291 aes128gcm** 加密（零依赖，node:crypto 手写 HKDF + ECDH + AES-GCM）；ES256 JWT 签名（DER→raw 转换）。订阅端点 `POST /api/push/subscribe`（设备凭证鉴权，非 loopback——手机经 DNS 围栏即可订阅）；`sw.js` 由插件 serve；`POST /api/push/test`（loopback）一键测试。**组件级验证已完成**：本地 mock push service 往返——VAPID JWT 签名可验、aes128gcm payload 解密还原、请求头正确；真机端到端（tailnet serve HTTPS + 手机授权）需用户环境验证。
+
 - VAPID 密钥对本地生成存储；`sw.js` 由插件 serve；订阅入口在 welcome 页与设置页。
 - **审批直达闭环**（对标结论 §2.3-5，happier Inbox / claudecodeui `permission_request` 的共同形态）：`ask.arrived` 触发锁屏推送 → 点击通知 deep-link 到对应会话的审批/提问 UI，而非首页；通知携带 session 标识做 **smart routing**（直达对应会话、不误投——单机 DSH 场景即 session id + server 无歧义）。
 - 约束：Push API 需 HTTPS + 用户授权 → **只在 HTTP/2（tailscale serve HTTPS）模式可用**，与 §5.1 修复后的模式绑定，形成"HTTP/2 完整增值包"：更快（多路复用）+ 围栏正确 + 锁屏通知。
