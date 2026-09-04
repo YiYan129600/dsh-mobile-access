@@ -1,6 +1,6 @@
 {
   "name": "dsh-mobile-access",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "DeepSeek Harness plugin: one-page mobile access setup — Tailscale/LAN detection, scan-to-pair QR, direct/HTTP-2 connection modes (Tailscale Serve toggle), API trust-fence guidance, persistent device credentials, PWA home-screen, and a live SSE notification channel.",
   "type": "module",
   "main": "lib/index.js",

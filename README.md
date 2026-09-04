@@ -35,10 +35,10 @@ dsh plugin --profile web add github:YiYan129600/dsh-mobile-access
    - **防火墙**：管理员 PowerShell 跑一次页面里给出的 netsh 命令（只放行 Tailscale 网段，公网不暴露）
 2. **选连接方式**：
    - 直连：选地址 → 「生成配对二维码」→ 手机扫码
-   - HTTP/2：填 HTTPS 域名（如 `yiyan.tail172eda.ts.net`，从 Tailscale 面板复制）→ 「开启 HTTP/2」（会弹 UAC，点「是」）→ **等清单里「API 信任围栏」变绿**（若红：复制页面给出的 `web-app.trustedHosts` 片段进 profile 的 `cordis.patch.yml` 并重启）→ 回到上方生成二维码
+   - HTTP/2：填 HTTPS 域名（如 `yiyan.tail172eda.ts.net`，从 Tailscale 面板复制）→ 「开启 HTTP/2」（会弹 UAC，点「是」）→ **等清单里「API 信任围栏」变绿**（若红：复制页面给出的 `connection`/`trustedHosts` 片段进 profile 的 `cordis.patch.yml` 并重启）→ 回到上方生成二维码
 3. 手机（同一 tailnet）扫码 → 落到**配对欢迎页**（已配对 ✓ + 设备名 + 凭证有效期）→ 按引导「添加到主屏幕」→ 从主屏幕图标全屏进入 DSH；桌面 UI 无需配对直接可用，`/m` 移动端需配对
 
-> HTTP/2 说明：`tailscale serve` 监听 tailnet 内网 443，仅同账号设备可达，TLS 证书自动签发。手机上所有请求走一条多路复用连接，高延迟蜂窝网下加载显著更快。**注意**：HTTP/2 模式手机以 `*.ts.net` 域名访问，必须把该域名加入 `web-app.trustedHosts`，否则 `/api` 被 DSH 的信任围栏挡成 403（页面能开、数据全空）——本插件已做探测与 patch 片段引导，杜绝"空壳二维码"。
+> HTTP/2 说明：`tailscale serve` 监听 tailnet 内网 443，仅同账号设备可达，TLS 证书自动签发。手机上所有请求走一条多路复用连接，高延迟蜂窝网下加载显著更快。**注意**：HTTP/2 模式手机以 `*.ts.net` 域名访问，必须把该域名 concat 进 connection 行的 `trustedHosts`（harness 没有 `web-app` 行，patch 该 id 会静默无效），否则 `/api` 被 DSH 的信任围栏挡成 403（页面能开、数据全空）——本插件已做探测与 patch 片段引导，杜绝"空壳二维码"。
 
 ## 安全说明 / Security
 
@@ -68,10 +68,9 @@ DSH 的 `/api` 信任围栏只是防 DNS 重绑定，**不是登录鉴权**。�
 
 > HTTP/2 模式还需把 ts.net 域名加入 **client-connection 的信任围栏**（否则 `/api` 403）。设置页「API 信任围栏」清单项会给出一键复制片段，形如：
 > ```yaml
-> - id: web-app
+> - id: connection
 >   config:
->     trustedHosts:
->       - yiyan.tail172eda.ts.net
+>     trustedHosts: !!js ctx.webRuntime.trustedHosts.concat('yiyan.tail172eda.ts.net')
 > ```
 
 ## 常见问题 / FAQ
